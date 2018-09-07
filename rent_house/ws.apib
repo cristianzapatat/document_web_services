@@ -1,0 +1,274 @@
+FORMAT: 1A
+
+# RentHouse
+
+Documentación de los servicios web del sistema.
+
+# Group Auth
+
+Grupo relacionado con la utenticación e identificación de usuarios en el sistema.
+
+## Recurso no encontrado [/*]
+
+Servicio que se lanza en todo momento que se quiere acceder a un recurso que no existe.
+
+### Not Found [GET]
+
++ Response 404 (application/json)
+
+        {
+            "status": "Not Found",
+            "data": []
+        }
+
+## Login [/login]
+
+Servicio con el cual se identifica a un usuario frente al sistema.
+Los mensajes en el Response 409 pueden variar según las condiciones de la petición.
+
+### Login [POST]
+
++ Request (application/json)
+
+    + Body
+
+            {
+                "email": "cristian@gyffu.com",
+                "password" : "password1234",
+                "type": "1"
+            }
+
+    + Schema
+            
+            {
+              "$schema": "http://json-schema.org/draft-07/schema#",
+              "type": "object",
+              "required" : [
+                "email",
+                "password"
+              ],
+              "properties": {
+                "email": {
+                  "type": "string",
+                  "description": "Correo del usuario"
+                },
+                "password": {
+                  "type": "string",
+                  "description": "Contraseña del usuario"
+                },
+                "type": {
+                  "type": "string",
+                  "values": [
+                    "0",
+                    "1"
+                  ],
+                  "description": "Tipo de login 0 para login desde web, 1 para login desde móvil, valor por defecto 0"
+                },
+              }
+            }                        
+
++ Response 200 (application/json)
+
+        {
+            "status": "Login",
+            "data": {
+                "user": {
+                    "idUser": "1",
+                    "email": "cristian@gyffu.com",
+                    "identifier": "1096038301",
+                    "name": "Cristian",
+                    "lastName": "Zapata",
+                    "phone": "3217837066",
+                    "dateBirth": "1995-06-30"
+                },
+                "token": "VK77ADl2P9RM9uW/it5BTgqkuHhS+ot1hU6Jsix19lyvGadrrQjcKgbC1KGHJWs6MVhrQb4QUWsv0g=="
+            }
+        }
+
++ Response 409 (application/json)
+
+        {
+            "status": "Not login",
+            "messages": [
+                {
+                    "message": "Correo/Contraseña incorrectos",
+                    "field": "login",
+                    "type": "identifier"
+                },
+                {
+                    "message": "El correo es obligatorio",
+                    "field": "email",
+                    "type": "missing"
+                },
+                {
+                    "message": "La contraseña es obligatorio",
+                    "field": "password",
+                    "type": "missing"
+                }
+            ]
+        }
+
+## Registro Usuario [/register]
+
+Servicio para realizar el registro de un usuario en el sistema.
+Los mensajes en el Response 409 pueden variar según las condiciones de la petición.
+
+### Registro Usuario [POST]
+
++ Request (application/json)
+
+    + Body
+
+            {
+                "name": "Anggie",
+                "lastName" : "Tabares",
+                "identifier": "1123456789",
+                "phone": "32178107458",
+                "dateBirth": "2010-02-20",
+                "email": "anggie@correo.com",
+                "password": "micuenta1234",
+                "confirm": "micuenta1234"
+            }
+
+    + Schema
+            
+            {
+              "$schema": "http://json-schema.org/draft-07/schema#",
+              "type": "object",
+              "required" : [
+                "name",
+                "lastName",
+                "identifier",
+                "phone",
+                "dateBirth",
+                "email",
+                "password",
+                "confirm"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Nombre del usuario"
+                },
+                "lastName": {
+                  "type": "string",
+                  "description": "Apellidos del usuario"
+                },
+                "identifier": {
+                  "type": "string",
+                  "description": "identificación del usuario"
+                },
+                "phone": {
+                  "type": "string",
+                  "description": "Celular del usuario"
+                },
+                "dateBirth": {
+                  "type": "string",
+                  "description": "Fecha de nacimiento del usuario",
+                  "format": "YYYY-MM-DD"
+                },
+                "email": {
+                  "type": "string",
+                  "description": "Correo del usuario"
+                },
+                "password": {
+                  "type": "string",
+                  "description": "Contraseña del usuario",
+                  "minLength": 10
+                },
+                "confirm": {
+                  "type": "string",
+                  "description": "confirmación y/o retepitición de la contraseña"
+                },
+              }
+            }
+
++ Response 200 (application/json)
+
+        {
+            "status": "Ok",
+            "data": {
+                "user": {
+                    "idUser": "8",
+                    "email": "anggie@correo.com",
+                    "identifier": "1123456789",
+                    "name": "Anggie",
+                    "lastName": "Tabares",
+                    "phone": "32178107458",
+                    "dateBirth": "2010-02-20"
+                }
+            }
+        }
+
++ Response 409 (application/json)
+
+        {
+            "status": "Not register",
+            "messages": [
+                {
+                    "message": "El correo ingresado ya está en uso",
+                    "field": "email",
+                    "type": "Uniqueness"
+                },
+                {
+                    "message": "El número de télefono ingresado ya está en uso",
+                    "field": "phone",
+                    "type": "Uniqueness"
+                },
+                {
+                    "message": "El número de identificación ingresado ya está en uso",
+                    "field": "identifier",
+                    "type": "Uniqueness"
+                },
+                {
+                    "message": "El contraseña y su confirmación no coinciden",
+                    "field": "password",
+                    "type": "unequal"
+                },
+                {
+                    "message": "El formato de la fecha de nacimiento es inválida. (YYY-MM-DD)",
+                    "field": "dateBirth",
+                    "type": "format"
+                },
+                {
+                    "message": "El campo name es obligatorio",
+                    "field": "name",
+                    "type": "PresenceOf"
+                },
+                {
+                    "message": "El campo lastName es obligatorio",
+                    "field": "lastName",
+                    "type": "PresenceOf"
+                },
+                {
+                    "message": "El campo identifier es obligatorio",
+                    "field": "identifier",
+                    "type": "PresenceOf"
+                },
+                {
+                    "message": "El campo phone es obligatorio",
+                    "field": "phone",
+                    "type": "PresenceOf"
+                },
+                {
+                    "message": "El campo dateBirth es obligatorio",
+                    "field": "dateBirth",
+                    "type": "PresenceOf"
+                },
+                {
+                    "message": "El campo email es obligatorio",
+                    "field": "email",
+                    "type": "PresenceOf"
+                },
+                {
+                    "message": "El campo password es obligatorio",
+                    "field": "password",
+                    "type": "PresenceOf"
+                },
+                {
+                    "message": "El campo confirm es obligatorio",
+                    "field": "confirm",
+                    "type": "PresenceOf"
+                }
+            ]
+        }
