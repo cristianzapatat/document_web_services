@@ -26,6 +26,9 @@ Servicio que se lanza en todo momento que se quiere acceder a un recurso que no 
 Servicio con el cual se identifica a un usuario frente al sistema.
 Los mensajes en el Response 409 pueden variar según las condiciones de la petición.
 
+- La primer Respuesta 200 es para un login de tipo rol propietario, inquilino o trabajador.
+- La segunda Respuesta 200 es par aun login de tipo rol representante legal lo que quiere decir una inmobiliaria.
+
 ### Login [POST]
 
 + Request (application/json)
@@ -35,6 +38,7 @@ Los mensajes en el Response 409 pueden variar según las condiciones de la petic
             {
                 "email": "cristian@gyffu.com",
                 "password" : "password1234",
+                "role": 0,
                 "type": "1"
             }
 
@@ -45,7 +49,8 @@ Los mensajes en el Response 409 pueden variar según las condiciones de la petic
               "type": "object",
               "required" : [
                 "email",
-                "password"
+                "password",
+                "role"
               ],
               "properties": {
                 "email": {
@@ -56,11 +61,21 @@ Los mensajes en el Response 409 pueden variar según las condiciones de la petic
                   "type": "string",
                   "description": "Contraseña del usuario"
                 },
+                "role": {
+                    "type": "integer/string",
+                    "description": "tipo del rol con el que se desea auntenticar",
+                    "values": [
+                        0: "Inidica rol propietario",
+                        1: "Inidica rol inquilino",
+                        2: "Inidica rol trabajador",
+                        3: "Inidica rol de representante legal de una inmobiliaria"
+                    ]
+                },
                 "type": {
-                  "type": "string",
+                  "type": "integer/string",
                   "values": [
-                    "0",
-                    "1"
+                    0: "Login desde sitios web",
+                    1: "Login desde sitios App móvil"
                   ],
                   "description": "Tipo de login 0 para login desde web, 1 para login desde móvil, valor por defecto 0"
                 },
@@ -73,15 +88,40 @@ Los mensajes en el Response 409 pueden variar según las condiciones de la petic
             "status": "Login",
             "data": {
                 "user": {
-                    "idUser": "1",
+                    "id": "1",
                     "email": "cristian@gyffu.com",
                     "identifier": "1096038301",
                     "name": "Cristian",
-                    "lastName": "Zapata",
+                    "last_name": "Zapata",
                     "phone": "3217837066",
-                    "dateBirth": "1995-06-30"
+                    "date_birth": "1995-06-30",
+                    "role": "1"
                 },
                 "token": "VK77ADl2P9RM9uW/it5BTgqkuHhS+ot1hU6Jsix19lyvGadrrQjcKgbC1KGHJWs6MVhrQb4QUWsv0g=="
+            }
+        }
+
++ Response 200 (application/json)
+
+        {
+            "status": "Login",
+            "data": {
+                "real_estate": {
+                    "id": "1",
+                    "nit": "10987458-1",
+                    "business_name": "Empresa Pruebas",
+                    "legal_representative": {
+                        "id": "2",
+                        "email": "empresa@empresa.com",
+                        "identifier": "14785471025",
+                        "name": "Juan",
+                        "last_name": "Perez",
+                        "phone": "3214587410",
+                        "date_birth": "1990-06-30 00:00:00",
+                        "role": "3"
+                    }
+                },
+                "token": "NwxReiD4ZVvdGgK6C5SZwDECN/oAz5Rf4bN4/HNIKvRPRittDY7GQFCdt9LSgadv1HRt06aQoznWvxVGXqPt"
             }
         }
 
@@ -91,18 +131,23 @@ Los mensajes en el Response 409 pueden variar según las condiciones de la petic
             "status": "Not login",
             "messages": [
                 {
-                    "message": "Correo/Contraseña incorrectos",
+                    "message": "Correo/Contraseña/Rol incorrectos",
                     "field": "login",
                     "type": "identifier"
                 },
                 {
-                    "message": "El correo es obligatorio",
+                    "message": "El campo email es obligatorio",
                     "field": "email",
                     "type": "missing"
                 },
                 {
-                    "message": "La contraseña es obligatorio",
+                    "message": "El campo password es obligatorio",
                     "field": "password",
+                    "type": "missing"
+                },
+                {
+                    "message": "El campo role es obligatorio",
+                    "field": "role",
                     "type": "missing"
                 }
             ]
@@ -110,8 +155,11 @@ Los mensajes en el Response 409 pueden variar según las condiciones de la petic
 
 ## Registro Usuario [/register]
 
-Servicio para realizar el registro de un usuario en el sistema.
+Servicio para realizar el registro de un usuario en el sistema quien puede ser una persona natural o inmobiliaria.
 Los mensajes en el Response 409 pueden variar según las condiciones de la petición.
+
+- El primer Request y Response corresponde a un registro de un usuario natural. Es decir Rol 0 y 1.
+- El segundo Request y Response correspondea a u registro de una inmobiliaria. Es decir Rol 3.
 
 ### Registro Usuario [POST]
 
@@ -120,14 +168,15 @@ Los mensajes en el Response 409 pueden variar según las condiciones de la petic
     + Body
 
             {
-                "name": "Anggie",
-                "lastName" : "Tabares",
-                "identifier": "1123456789",
-                "phone": "32178107458",
-                "dateBirth": "2010-02-20",
-                "email": "anggie@correo.com",
-                "password": "micuenta1234",
-                "confirm": "micuenta1234"
+                "name": "Camilo",
+                "last_name" : "Aguiire",
+                "identifier": "789",
+                "phone": "57484",
+                "date_birth": "2010-02-20",
+                "email": "aguirre@correo.com",
+                "password": "12314567890",
+                "confirm": "12314567890",
+                "role": "1"
             }
 
     + Schema
@@ -143,14 +192,15 @@ Los mensajes en el Response 409 pueden variar según las condiciones de la petic
                 "dateBirth",
                 "email",
                 "password",
-                "confirm"
+                "confirm",
+                "role"
               ],
               "properties": {
                 "name": {
                   "type": "string",
                   "description": "Nombre del usuario"
                 },
-                "lastName": {
+                "last_name": {
                   "type": "string",
                   "description": "Apellidos del usuario"
                 },
@@ -162,7 +212,7 @@ Los mensajes en el Response 409 pueden variar según las condiciones de la petic
                   "type": "string",
                   "description": "Celular del usuario"
                 },
-                "dateBirth": {
+                "date_birth": {
                   "type": "string",
                   "description": "Fecha de nacimiento del usuario",
                   "format": "YYYY-MM-DD"
@@ -180,6 +230,14 @@ Los mensajes en el Response 409 pueden variar según las condiciones de la petic
                   "type": "string",
                   "description": "confirmación y/o retepitición de la contraseña"
                 },
+                "role": {
+                  "type": "integer/string",
+                  "description": "tipo de rol del usuario",
+                  "values": [
+                    0: "propietario",
+                    1: "inquilino"
+                  ]
+                }
               }
             }
 
@@ -189,13 +247,125 @@ Los mensajes en el Response 409 pueden variar según las condiciones de la petic
             "status": "Ok",
             "data": {
                 "user": {
-                    "idUser": "8",
-                    "email": "anggie@correo.com",
-                    "identifier": "1123456789",
-                    "name": "Anggie",
-                    "lastName": "Tabares",
-                    "phone": "32178107458",
-                    "dateBirth": "2010-02-20"
+                    "id": "8",
+                    "email": "aguirre@correo.com",
+                    "identifier": "789",
+                    "name": "Camilo",
+                    "last_name": "Aguiire",
+                    "phone": "57484",
+                    "date_birth": "2010-02-20",
+                    "role": "1"
+                }
+            }
+        }
+
++ Request (application/json)
+
+    + Body
+
+            {
+                "name": "Carolina",
+                "last_name" : "Tabares",
+                "identifier": "12222",
+                "phone": "3334555",
+                "date_birth": "2010-02-20",
+                "email": "correo@correo.com",
+                "password": "12314567890",
+                "confirm": "12314567890",
+                "role": "3",
+                "nit" : "1478521-1",
+                "business_name": "My company"
+            }
+
+    + Schema
+            
+            {
+              "$schema": "http://json-schema.org/draft-07/schema#",
+              "type": "object",
+              "required" : [
+                "name",
+                "lastName",
+                "identifier",
+                "phone",
+                "dateBirth",
+                "email",
+                "password",
+                "confirm",
+                "role"
+              ],
+              "properties": {
+                "name": {
+                  "type": "string",
+                  "description": "Nombre del usuario"
+                },
+                "last_name": {
+                  "type": "string",
+                  "description": "Apellidos del usuario"
+                },
+                "identifier": {
+                  "type": "string",
+                  "description": "identificación del usuario"
+                },
+                "phone": {
+                  "type": "string",
+                  "description": "Celular del usuario"
+                },
+                "date_birth": {
+                  "type": "string",
+                  "description": "Fecha de nacimiento del usuario",
+                  "format": "YYYY-MM-DD"
+                },
+                "email": {
+                  "type": "string",
+                  "description": "Correo del usuario"
+                },
+                "password": {
+                  "type": "string",
+                  "description": "Contraseña del usuario",
+                  "minLength": 10
+                },
+                "confirm": {
+                  "type": "string",
+                  "description": "confirmación y/o retepitición de la contraseña"
+                },
+                "role": {
+                  "type": "integer/string",
+                  "description": "tipo de rol del usuario",
+                  "values": [
+                    0: "propietario",
+                    1: "inquilino"
+                  ]
+                },
+                "nit": {
+                  "type": "string",
+                  "description": "identificación de la empresa"
+                },
+                "business_name": {
+                  "type": "string",
+                  "description": "razón social de la empresa"
+                },
+              }
+            }
+
++ Response 200 (application/json)
+
+        {
+            "status": "Ok",
+            "data": {
+                "real_estate": {
+                    "id": "3",
+                    "nit": "14782521-1",
+                    "business_name": "My company",
+                    "legal_representative": {
+                        "id": "10",
+                        "email": "correo@correo.com",
+                        "identifier": "12222",
+                        "name": "Carolina",
+                        "last_name": "Tabares",
+                        "phone": "3334555",
+                        "date_birth": "2010-02-20",
+                        "role": "3"
+                    }
                 }
             }
         }
@@ -269,6 +439,16 @@ Los mensajes en el Response 409 pueden variar según las condiciones de la petic
                     "message": "El campo confirm es obligatorio",
                     "field": "confirm",
                     "type": "PresenceOf"
+                },
+                {
+                    "message": "El campo role es obligatorio",
+                    "field": "role",
+                    "type": "PresenceOf"
+                },
+                {
+                    "message": "El nit ingresado ya está en uso",
+                    "field": "nit",
+                    "type": "Uniqueness"
                 }
             ]
         }
