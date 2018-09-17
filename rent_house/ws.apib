@@ -2,17 +2,17 @@ FORMAT: 1A
 
 # RentHouse
 
+# Group RentHouse
+
 Documentación de los servicios web del sistema.
 
-# Group Auth
+# Auth [/]
 
 Grupo relacionado con la utenticación e identificación de usuarios en el sistema.
 
-## Recurso no encontrado [/*]
+## Not Found [GET /*]
 
 Servicio que se lanza en todo momento que se quiere acceder a un recurso que no existe.
-
-### Not Found [GET]
 
 + Response 404 (application/json)
 
@@ -21,15 +21,13 @@ Servicio que se lanza en todo momento que se quiere acceder a un recurso que no 
             "data": []
         }
 
-## Login [/login]
+## Login [POST /login]
 
 Servicio con el cual se identifica a un usuario frente al sistema.
 Los mensajes en el Response 409 pueden variar según las condiciones de la petición.
 
 - La primer Respuesta 200 es para un login de tipo rol propietario, inquilino o trabajador.
 - La segunda Respuesta 200 es par aun login de tipo rol representante legal lo que quiere decir una inmobiliaria.
-
-### Login [POST]
 
 + Request (application/json)
 
@@ -153,15 +151,13 @@ Los mensajes en el Response 409 pueden variar según las condiciones de la petic
             ]
         }
 
-## Registro Usuario [/register]
+## Registro Usuario [POST /register]
 
 Servicio para realizar el registro de un usuario en el sistema quien puede ser una persona natural o inmobiliaria.
 Los mensajes en el Response 409 pueden variar según las condiciones de la petición.
 
 - El primer Request y Response corresponde a un registro de un usuario natural. Es decir Rol 0 y 1.
 - El segundo Request y Response correspondea a u registro de una inmobiliaria. Es decir Rol 3.
-
-### Registro Usuario [POST]
 
 + Request (application/json)
 
@@ -332,8 +328,7 @@ Los mensajes en el Response 409 pueden variar según las condiciones de la petic
                   "type": "integer/string",
                   "description": "tipo de rol del usuario",
                   "values": [
-                    0: "propietario",
-                    1: "inquilino"
+                    3: "Representante legal"
                   ]
                 },
                 "nit": {
@@ -453,19 +448,17 @@ Los mensajes en el Response 409 pueden variar según las condiciones de la petic
             ]
         }
 
-# Group Property
+# Property [/property]
 
 Grupo relacionado con la gestiona de las propiedades del sistema, los usuarios que pueden gestionar
 las propiedades crear, editar, eliminar son aquellos que estan identificados como propietario y/o representante legal.
 
-## Obtener Propiedad [/property/{id}]
+## Obtener Propiedad [GET /property/{id}]
 
 Servicio para obtener una propiedad del sistema siempre y cuando esta esté relacionada con el usuario de rol propietario o inmobiliaria (representante legal).
 
 - En caso de querer consumir el servicio con un usuario de rol diferente a los mencionados el recurso no estará disponible y retorna el servicio
-'Not Found'
-
-### Obtener Propiedad [GET]
+*Not Found*
 
 + Parameters
     + id (number) - Identificador de la propiedad.
@@ -510,14 +503,12 @@ Servicio para obtener una propiedad del sistema siempre y cuando esta esté rela
             "data": []
         }
 
-## Listar Propiedades [/property/list/{status}]
+## Listar Propiedades [GET /property/list/{status}{?limit,page}]
 
 Serivicio para obtener las propiedades todas la propiedades relacionadas con un usario de rol propietario o inmobiliaria (representante legal).
 
 - En caso de querer consumir el servicio con un usuario de rol diferente a los mencionados el recurso no estará disponible y retorna el servicio
-'Not Found'
-
-### Listar Propiedades [GET]
+*Not Found*
 
 + Parameters
     + status (enum[string]) - Este sirve como filtro a la hora de listar para obtener las propiedades en un estato en concreto
@@ -527,6 +518,12 @@ Serivicio para obtener las propiedades todas la propiedades relacionadas con un 
             + 1: No Disponible
             + 2: Ocupada
             + 3: Eliminada
+
+    + limit (number, optional) - Cantidad máxima de registro que trae en la lista.
+        + Default: `20`
+
+    + page (number, optional) - Página de la que se obtienen los resgistros.
+        + Default: `1`
 
 + Request
 
@@ -569,6 +566,459 @@ Serivicio para obtener las propiedades todas la propiedades relacionadas con un 
                     }
                 ]
             }
+        }
+
++ Response 404 (application/json)
+
+        {
+            "status": "Not Found",
+            "data": []
+        }
+
+## Crear Propiedad [POST /property]
+
+Servicio para crear una nueva propieda en el sistema, la acción puede ser llevada acabo por un usuario de tipo
+rol Propietario (0) o inmobiliaria (Representate legal (3)).
+
+- En caso de querer consumir el servicio con un usuario de rol diferente a los mencionados el recurso no estará disponible y retorna el servicio
+*Not Found*
+
+- Cuando el registro es elaborado por una inmobiliaria en el *Body* de la solicitud se debe enviar el *user_id* el cual indicará
+el propietario del inmueble; En caso de que el registro de lleve acabo desde un perfil propitario este parámetro no se tiene en cuenta.
+
++ Request
+
+    + Headers
+
+            Authorization: token obtenido del recurso 'Login'
+    
+    + Body
+
+            {
+                "type": 1,
+                "location": "Avenida siempreviva 742",
+                "description": "Casa de dos pisos color amarillo",
+                "city_id": "1",
+                "latitude": 72.5,
+                "longitude": -78.5,
+                "extention": 100,
+                "rooms": 2,
+                "bathrooms": 2,
+                "kitchen": 1,
+                "garage": 1,
+                "cost_month": 500000,
+                "deposit": 100000,
+                "user_id": "1"
+            }
+
+    + Schema
+
+            {
+              "$schema": "http://json-schema.org/draft-07/schema#",
+              "type": "object",
+              "required" : [
+                "type",
+                "location",
+                "description",
+                "city_id",
+                "user_id": "si el registro lo realiza una inmobiliaria"
+              ],
+              "optional": [
+                "latitude",
+                "longitude",
+                "extention",
+                "rooms",
+                "bathrooms",
+                "kitchen",
+                "garage",
+                "cost_month",
+                "deposit"
+              ],
+              "properties": {
+                "type": {
+                  "type": "integer/string",
+                  "description": "Referencia al tipo de prp}opiedad, actualmente se cuenta con los siguientes datos.",
+                  "values": [
+                    1: "Apartamento",
+                    2: "Casa",
+                    3: "Aparta-Estudio"
+                  ]
+                },
+                "location": {
+                  "type": "string",
+                  "description": "Dirección textual en la que esta la propiedad"
+                },
+                "description": {
+                  "type": "string",
+                  "description": "Descripción de la propiedad"
+                },
+                "city_id": {
+                  "type": "integer",
+                  "description": "Referencia de la ciudad en la que se encuentra ubicada la propiedad"
+                },
+                "latitude": {
+                  "type": "double",
+                  "description": "Punto latitud en la que la propiedad se encuentra ubicada",
+                  "default": NULL
+                },
+                "longitude": {
+                  "type": "double",
+                  "description": "Punto longitud en la que la propiedad se encuentra ubicada",
+                  "default": NULL
+                },
+                "extention": {
+                  "type": "string",
+                  "description": "Dimensión de la propiedad",
+                  "default": 0
+                },
+                "rooms": {
+                  "type": "integer",
+                  "description": "Cantidad de cuarto que contiene la propiedad",
+                  "default": 0
+                },
+                "bathrooms": {
+                  "type": "integer",
+                  "description": "Cantidad de baños que contiene la propiedad",
+                  "default": 0
+                },
+                "kitchen": {
+                  "type": "integer",
+                  "description": "Cantidad de cocinas que contiene la propiedad",
+                  "default": 0
+                },
+                "garage": {
+                  "type": "integer",
+                  "description": "Cantidad de garajes que contiene la propiedad",
+                  "default": 0
+                },
+                "cost_month": {
+                  "type": "integer",
+                  "description": "Costo mensual de la propiedad",
+                  "default": 0
+                },
+                "deposit": {
+                  "type": "integer",
+                  "description": "Valor de deposito que requiere la propiedad",
+                  "default": 0
+                },
+                "user_id": {
+                  "type": "integer",
+                  "description": "Referncia al usuario propietario de la propiedad."
+                },
+              }
+            }
+
++ Response 200 (application/json)
+
+            {
+                "status": "Ok",
+                "data": {
+                    "property": {
+                        "id": "2",
+                        "type": "1",
+                        "location": "Avenida siempreviva 742",
+                        "latitude": 72.5,
+                        "longitude": -78.5,
+                        "extention": 100,
+                        "rooms": 2,
+                        "bathrooms": 2,
+                        "kitchen": 1,
+                        "garage": 1,
+                        "description": "Casa de dos pisos color amarillo",
+                        "cost_month": 500000,
+                        "deposit": 100000,
+                        "status": 0,
+                        "user_id": "1",
+                        "real_estate_id": "1",
+                        "city_id": "1"
+                    }
+                }
+            }
+
++ Response 409 (application/json)
+
+        {
+            "status": "Not created",
+            "messages": [
+                {
+                    "message": "El usuario propietario indicado no existe",
+                    "field": "user_id",
+                    "type": "Type property"
+                },
+                {
+                    "message": "El tipo de propiedad indicado no existe",
+                    "field": "type",
+                    "type": "Type property"
+                },
+                {
+                    "message": "La ciudad indicada no existe",
+                    "field": "city_id",
+                    "type": "City"
+                },
+                {
+                    "message": "El campo type es obligatorio",
+                    "field": "type",
+                    "type": "PresenceOf"
+                },
+                {
+                    "message": "El campo location es obligatorio",
+                    "field": "location",
+                    "type": "PresenceOf"
+                },
+                {
+                    "message": "El campo description es obligatorio",
+                    "field": "description",
+                    "type": "PresenceOf"
+                },
+                {
+                    "message": "El campo user_id es obligatorio",
+                    "field": "user_id",
+                    "type": "PresenceOf"
+                },
+                {
+                    "message": "El campo city_id es obligatorio",
+                    "field": "city_id",
+                    "type": "PresenceOf"
+                }
+            ]
+        }
+
++ Response 404 (application/json)
+
+        {
+            "status": "Not Found",
+            "data": []
+        }
+
+## Editar Propiedad [PUT /property]
+
+Servicio para editar una nueva propieda en el sistema, la acción puede ser llevada acabo por un usuario de tipo
+rol Propietario (0) o inmobiliaria (Representate legal (3)).
+
+- En caso de querer consumir el servicio con un usuario de rol diferente a los mencionados el recurso no estará disponible y retorna el servicio
+*Not Found*
+
+- Cuando la edición es elaborada por una inmobiliaria y se desea cambiar el propietario en el *Body* de la solicitud se debe enviar el *user_id* 
+el cual indicará el propietario del inmueble.
+
++ Request
+
+    + Headers
+
+            Authorization: token obtenido del recurso 'Login'
+    
+    + Body
+
+            {
+                "type": 1,
+                "location": "Avenida siempreviva 742",
+                "description": "Casa de dos pisos color amarillo",
+                "city_id": "1",
+                "latitude": 72.5,
+                "longitude": -78.5,
+                "extention": 100,
+                "rooms": 2,
+                "bathrooms": 2,
+                "kitchen": 1,
+                "garage": 1,
+                "cost_month": 500000,
+                "deposit": 100000,
+                "user_id": "1"
+            }
+
+    + Schema
+
+            {
+              "$schema": "http://json-schema.org/draft-07/schema#",
+              "type": "object",
+              "required" : [
+                "id"
+              ],
+              "optional": [
+                "type",
+                "location",
+                "description",
+                "city_id",
+                "latitude",
+                "longitude",
+                "extention",
+                "rooms",
+                "bathrooms",
+                "kitchen",
+                "garage",
+                "cost_month",
+                "deposit",
+                "user_id",
+              ],
+              "properties": {
+                "type": {
+                  "type": "integer/string",
+                  "description": "Referencia al tipo de prp}opiedad, actualmente se cuenta con los siguientes datos.",
+                  "values": [
+                    1: "Apartamento",
+                    2: "Casa",
+                    3: "Aparta-Estudio"
+                  ]
+                },
+                "location": {
+                  "type": "string",
+                  "description": "Dirección textual en la que esta la propiedad"
+                },
+                "description": {
+                  "type": "string",
+                  "description": "Descripción de la propiedad"
+                },
+                "city_id": {
+                  "type": "integer",
+                  "description": "Referencia de la ciudad en la que se encuentra ubicada la propiedad"
+                },
+                "latitude": {
+                  "type": "double",
+                  "description": "Punto latitud en la que la propiedad se encuentra ubicada"
+                },
+                "longitude": {
+                  "type": "double",
+                  "description": "Punto longitud en la que la propiedad se encuentra ubicada"
+                },
+                "extention": {
+                  "type": "string",
+                  "description": "Dimensión de la propiedad"
+                },
+                "rooms": {
+                  "type": "integer",
+                  "description": "Cantidad de cuarto que contiene la propiedad"
+                },
+                "bathrooms": {
+                  "type": "integer",
+                  "description": "Cantidad de baños que contiene la propiedad"
+                },
+                "kitchen": {
+                  "type": "integer",
+                  "description": "Cantidad de cocinas que contiene la propiedad"
+                },
+                "garage": {
+                  "type": "integer",
+                  "description": "Cantidad de garajes que contiene la propiedad"
+                },
+                "cost_month": {
+                  "type": "integer",
+                  "description": "Costo mensual de la propiedad"
+                },
+                "deposit": {
+                  "type": "integer",
+                  "description": "Valor de deposito que requiere la propiedad"
+                },
+                "user_id": {
+                  "type": "integer",
+                  "description": "Referncia al usuario propietario de la propiedad."
+                },
+              }
+            }
+
++ Response 200 (application/json)
+
+            {
+                "status": "Ok",
+                "data": {
+                    "property": {
+                        "id": "2",
+                        "type": "1",
+                        "location": "Avenida siempreviva 742",
+                        "latitude": 72.5,
+                        "longitude": -78.5,
+                        "extention": 100,
+                        "rooms": 2,
+                        "bathrooms": 2,
+                        "kitchen": 1,
+                        "garage": 1,
+                        "description": "Casa de dos pisos color amarillo",
+                        "cost_month": 500000,
+                        "deposit": 100000,
+                        "status": 0,
+                        "user_id": "1",
+                        "real_estate_id": "1",
+                        "city_id": "1"
+                    }
+                }
+            }
+
++ Response 409 (application/json)
+
+        {
+            "status": "Not created",
+            "messages": [
+                {
+                    "message": "La propiedad indicado no existe",
+                    "field": "type",
+                    "type": "Property"
+                },
+                {
+                    "message": "El usuario propietario indicado no existe",
+                    "field": "user_id",
+                    "type": "Type property"
+                },
+                {
+                    "message": "El tipo de propiedad indicado no existe",
+                    "field": "type",
+                    "type": "Type property"
+                },
+                {
+                    "message": "La ciudad indicada no existe",
+                    "field": "city_id",
+                    "type": "City"
+                },
+                {
+                    "message": "El campo id es obligatorio",
+                    "field": "type",
+                    "type": "PresenceOf"
+                }
+            ]
+        }
+
++ Response 404 (application/json)
+
+        {
+            "status": "Not Found",
+            "data": []
+        }
+
+## Eliminar Propiedad [DELETE /property/{id}]
+
+Servicio para eliminar una propiedad del sistema, este eliminación se realiza de forma lógica con el fin de respectar procesos de negocio,
+la eliminación se lleva acabo siempre y cuando el usuario sea de tipo *propietario* o *inmobiliaria* y tenga relación con dicha propiedad.
+
++ Parameters
+    + id (number) - Identificador de la propiedad.
+
++ Request
+
+    + Headers
+
+            Authorization: token obtenido del recurso 'Login'
+
++ Response 200 (application/json)
+
+        {
+            "status": "Ok",
+            "data": []
+        }
+
++ Response 409 (application/json)
+
+        {
+            "status": "Not deleted",
+            "messages": [
+                {
+                    "message": "La propiedad indicado no existe",
+                    "field": "type",
+                    "type": "Property"
+                },
+                {
+                    "message": "El campo id es obligatorio",
+                    "field": "type",
+                    "type": "PresenceOf"
+                }
+            ]
         }
 
 + Response 404 (application/json)
